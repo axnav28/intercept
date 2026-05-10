@@ -15,7 +15,8 @@ type CallStage = "transcript" | "response";
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [stage] = useState<CallStage>("transcript");
-  const { connectionStatus, isRunning, lines, partialText, start, pause, reset } = useCallSession();
+  const { analysis, connectionStatus, isRunning, lines, partialText, start, pause, reset } =
+    useCallSession();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -47,6 +48,7 @@ export default function App() {
                   : "Demo standby"
                 : "Connecting backend"
             }
+            contextLabel={analysis.summary}
             rightSlot={
               <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
                 <ListeningIndicator

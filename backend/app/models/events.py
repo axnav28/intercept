@@ -8,6 +8,7 @@ EventType = Literal[
     "session.state",
     "transcript.partial",
     "transcript.final",
+    "analysis.updated",
     "session.completed",
 ]
 

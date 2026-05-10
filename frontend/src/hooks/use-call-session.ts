@@ -8,12 +8,21 @@ export type TranscriptLine = {
 };
 
 type ConnectionStatus = "connecting" | "ready" | "disconnected";
+type AnalysisState = {
+  emergencyDetected: boolean;
+  injuryMentioned: boolean;
+  locationMentioned: boolean;
+  criticalKeywords: string[];
+  severity: "monitoring" | "elevated" | "critical";
+  summary: string;
+};
 
 type ServerEvent =
   | { type: "session.ready"; payload: { mode: string } }
   | { type: "session.state"; payload: { isRunning: boolean; scriptIndex: number } }
   | { type: "transcript.partial"; payload: TranscriptLine }
   | { type: "transcript.final"; payload: TranscriptLine }
+  | { type: "analysis.updated"; payload: AnalysisState }
   | { type: "session.completed"; payload: { reason: string } };
 
 const baseLines: TranscriptLine[] = [
@@ -39,6 +48,14 @@ export function useCallSession() {
   const [isRunning, setIsRunning] = useState(false);
   const [lines, setLines] = useState<TranscriptLine[]>(baseLines);
   const [partialText, setPartialText] = useState("");
+  const [analysis, setAnalysis] = useState<AnalysisState>({
+    emergencyDetected: false,
+    injuryMentioned: false,
+    locationMentioned: false,
+    criticalKeywords: [],
+    severity: "monitoring",
+    summary: "AI context: monitoring live call for emergency details."
+  });
 
   useEffect(() => {
     const socket = new WebSocket(WS_URL);
@@ -78,6 +95,11 @@ export function useCallSession() {
         return;
       }
 
+      if (event.type === "analysis.updated") {
+        setAnalysis(event.payload);
+        return;
+      }
+
       if (event.type === "session.completed") {
         setIsRunning(false);
       }
@@ -95,10 +117,19 @@ export function useCallSession() {
   const reset = () => {
     setLines(baseLines);
     setPartialText("");
+    setAnalysis({
+      emergencyDetected: false,
+      injuryMentioned: false,
+      locationMentioned: false,
+      criticalKeywords: [],
+      severity: "monitoring",
+      summary: "AI context: monitoring live call for emergency details."
+    });
     send("demo.reset");
   };
 
   return {
+    analysis,
     connectionStatus,
     isRunning,
     lines,

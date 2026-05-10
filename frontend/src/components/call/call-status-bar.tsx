@@ -3,17 +3,26 @@ import type { ReactNode } from "react";
 type CallStatusBarProps = {
   modeLabel: string;
   connectionLabel: string;
+  contextLabel: string;
   rightSlot?: ReactNode;
 };
 
-export function CallStatusBar({ modeLabel, connectionLabel, rightSlot }: CallStatusBarProps) {
+export function CallStatusBar({
+  modeLabel,
+  connectionLabel,
+  contextLabel,
+  rightSlot
+}: CallStatusBarProps) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusPill label={modeLabel} tone="accent" />
-        <StatusPill label={connectionLabel} tone="neutral" />
-        <StatusPill label="Tamil -> Hindi" tone="neutral" />
-        <StatusPill label="Road accident mode" tone="neutral" />
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusPill label={modeLabel} tone="accent" />
+          <StatusPill label={connectionLabel} tone="neutral" />
+          <StatusPill label="Tamil -> Hindi" tone="neutral" />
+          <StatusPill label="Road accident mode" tone="neutral" />
+        </div>
+        <p className="text-sm text-[var(--text-secondary)]">{contextLabel}</p>
       </div>
       {rightSlot}
     </div>

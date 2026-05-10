@@ -2,13 +2,16 @@ import asyncio
 from dataclasses import dataclass
 
 from app.models.events import ServerEvent
+from app.services.ai.semantic_analyzer import SemanticAnalyzer
+from app.services.ai.translator import TranslationService
 
 
 @dataclass(frozen=True)
 class ScriptEntry:
     id: str
     time: str
-    text: str
+    source_text: str
+    fallback_translation: str
     tone: str
     lead_ms: int
 
@@ -17,21 +20,24 @@ SCRIPT = [
     ScriptEntry(
         id="line-3",
         time="11:43 PM",
-        text="मैं तमिल में बोल रहा हूँ... हमारी बाइक का एक्सीडेंट हो गया है।",
+        source_text="நான் தமிழில் பேசுகிறேன்... எங்களுடைய பைக் விபத்தில் சிக்கியது.",
+        fallback_translation="मैं तमिल में बोल रहा हूँ... हमारी बाइक का एक्सीडेंट हो गया है।",
         tone="translated",
         lead_ms=900,
     ),
     ScriptEntry(
         id="line-4",
         time="11:43 PM",
-        text="मेरे हाथ में बहुत दर्द है और दूसरा आदमी सड़क पर गिरा हुआ है।",
+        source_text="என் கையில் மிகவும் வலி இருக்கிறது, இன்னொருவர் சாலையில் விழுந்திருக்கிறார்.",
+        fallback_translation="मेरे हाथ में बहुत दर्द है और दूसरा आदमी सड़क पर गिरा हुआ है।",
         tone="translated",
         lead_ms=700,
     ),
     ScriptEntry(
         id="line-5",
         time="11:44 PM",
-        text="कृपया लाइन पर रहें. आपकी बात लगातार समझी जा रही है।",
+        source_text="தயவுசெய்து லைனில் இருங்கள். உங்கள் பேச்சை தொடர்ந்து புரிந்து கொள்ளப்படுகிறது.",
+        fallback_translation="कृपया लाइन पर रहें. आपकी बात लगातार समझी जा रही है।",
         tone="system",
         lead_ms=1100,
     ),
@@ -45,6 +51,8 @@ class DemoReplaySession:
         self.script_index = 0
         self.char_index = 0
         self.is_running = False
+        self.translator = TranslationService()
+        self.semantic_analyzer = SemanticAnalyzer()
 
     def reset(self) -> None:
         self.script_index = 0
@@ -72,7 +80,7 @@ class DemoReplaySession:
                 if not self.is_running:
                     break
 
-            while self.is_running and self.char_index < len(entry.text):
+            while self.is_running and self.char_index < len(entry.fallback_translation):
                 self.char_index += 1
                 await websocket_send(
                     ServerEvent(
@@ -81,7 +89,7 @@ class DemoReplaySession:
                             "id": entry.id,
                             "time": entry.time,
                             "tone": entry.tone,
-                            "text": entry.text[: self.char_index],
+                            "text": entry.fallback_translation[: self.char_index],
                         },
                     ).model_dump()
                 )
@@ -90,6 +98,9 @@ class DemoReplaySession:
             if not self.is_running:
                 break
 
+            translated_text = await self.translator.translate(entry.source_text, entry.fallback_translation)
+            analysis = await self.semantic_analyzer.analyze(translated_text)
+
             await websocket_send(
                 ServerEvent(
                     type="transcript.final",
@@ -97,10 +108,11 @@ class DemoReplaySession:
                         "id": entry.id,
                         "time": entry.time,
                         "tone": entry.tone,
-                        "text": entry.text,
+                        "text": translated_text,
                     },
                 ).model_dump()
             )
+            await websocket_send(ServerEvent(type="analysis.updated", payload=analysis).model_dump())
             self.char_index = 0
             self.script_index += 1
 
