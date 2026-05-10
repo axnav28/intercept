@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { EmergencyService } from "../../data/nh48-services";
 import { districtCenter } from "../../data/nh48-services";
-import { configureMapbox, mapboxgl } from "../../lib/mapbox";
+import { configureMapboxAccess, loadMapbox } from "../../lib/mapbox";
 import { ServiceCardList } from "./service-card-list";
 
 type EmergencyMapProps = {
@@ -25,17 +25,38 @@ export function EmergencyMap({
   focus = districtCenter
 }: EmergencyMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRefs = useRef<mapboxgl.Marker[]>([]);
-  const token = configureMapbox();
+  const mapRef = useRef<any>(null);
+  const markerRefs = useRef<any[]>([]);
+  const [mapbox, setMapbox] = useState<any>(null);
+  const token = configureMapboxAccess();
   const highlightedSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
 
   useEffect(() => {
-    if (!token || !mapContainerRef.current || mapRef.current) {
+    if (!token) {
       return;
     }
 
-    mapRef.current = new mapboxgl.Map({
+    let mounted = true;
+
+    loadMapbox().then((module) => {
+      if (!mounted) {
+        return;
+      }
+      module.accessToken = token;
+      setMapbox(module);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token || !mapbox || !mapContainerRef.current || mapRef.current) {
+      return;
+    }
+
+    mapRef.current = new mapbox.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/light-v11",
       center: [districtCenter.longitude, districtCenter.latitude],
@@ -43,7 +64,7 @@ export function EmergencyMap({
       attributionControl: false
     });
 
-    mapRef.current.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+    mapRef.current.addControl(new mapbox.NavigationControl({ visualizePitch: true }), "top-right");
 
     return () => {
       markerRefs.current.forEach((marker) => marker.remove());
@@ -51,10 +72,10 @@ export function EmergencyMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [token]);
+  }, [mapbox, token]);
 
   useEffect(() => {
-    if (!mapRef.current || !token) {
+    if (!mapRef.current || !token || !mapbox) {
       return;
     }
 
@@ -71,11 +92,11 @@ export function EmergencyMap({
         ? "0 0 0 10px rgba(15,143,99,0.16)"
         : "0 4px 12px rgba(15,23,42,0.18)";
 
-      return new mapboxgl.Marker(markerNode)
+      return new mapbox.Marker(markerNode)
         .setLngLat([service.longitude, service.latitude])
         .addTo(mapRef.current!);
     });
-  }, [highlightedSet, services, token]);
+  }, [highlightedSet, mapbox, services, token]);
 
   useEffect(() => {
     if (!mapRef.current || !focus || !token) {
