@@ -23,6 +23,8 @@
   --toggle-track: #cbd5e1;
   --system-bg: #fffaf0;
   --system-border: rgba(245, 158, 11, 0.2);
+  --source-bg: rgba(255, 255, 255, 0.72);
+  --source-border: rgba(14, 116, 144, 0.16);
   --translated-bg: #f4fbf7;
   --translated-border: rgba(16, 185, 129, 0.22);
 }
@@ -45,6 +47,8 @@
   --toggle-track: #334155;
   --system-bg: rgba(120, 53, 15, 0.2);
   --system-border: rgba(251, 191, 36, 0.2);
+  --source-bg: rgba(8, 47, 73, 0.34);
+  --source-border: rgba(125, 211, 252, 0.18);
   --translated-bg: rgba(3, 105, 70, 0.18);
   --translated-border: rgba(110, 231, 183, 0.18);
 }

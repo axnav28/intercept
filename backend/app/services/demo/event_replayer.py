@@ -116,6 +116,10 @@ class DemoReplaySession:
 
             while self.is_running and self.char_index < len(entry.fallback_translation):
                 self.char_index += 1
+                source_length = max(
+                    1,
+                    round(len(entry.source_text) * (self.char_index / len(entry.fallback_translation))),
+                )
                 await websocket_send(
                     ServerEvent(
                         type="transcript.partial",
@@ -123,7 +127,8 @@ class DemoReplaySession:
                             "id": entry.id,
                             "time": entry.time,
                             "tone": entry.tone,
-                            "text": entry.fallback_translation[: self.char_index],
+                            "sourceText": entry.source_text[:source_length],
+                            "translatedText": entry.fallback_translation[: self.char_index],
                         },
                     ).model_dump()
                 )
@@ -146,7 +151,8 @@ class DemoReplaySession:
                         "id": entry.id,
                         "time": entry.time,
                         "tone": entry.tone,
-                        "text": translated_text,
+                        "sourceText": entry.source_text,
+                        "translatedText": translated_text,
                     },
                 ).model_dump()
             )

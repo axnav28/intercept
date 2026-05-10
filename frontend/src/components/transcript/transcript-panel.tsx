@@ -6,7 +6,7 @@ type TranscriptPanelProps = {
   title: string;
   subtitle: string;
   lines: readonly TranscriptLine[];
-  partialText?: string;
+  partialLine?: TranscriptLine | null;
   isComplete?: boolean;
 };
 
@@ -14,7 +14,7 @@ export function TranscriptPanel({
   title,
   subtitle,
   lines,
-  partialText = "",
+  partialLine = null,
   isComplete = false
 }: TranscriptPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -27,7 +27,7 @@ export function TranscriptPanel({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth"
     });
-  }, [lines, partialText]);
+  }, [lines, partialLine]);
 
   return (
     <section className="flex h-full flex-col">
@@ -59,24 +59,56 @@ export function TranscriptPanel({
                 </span>
                 <time className="text-xs text-[var(--text-faint)]">{line.time}</time>
               </div>
-              <p className="mt-3 text-base leading-7 text-[var(--text-primary)] sm:text-lg">{line.text}</p>
+              {line.sourceText ? (
+                <div className="mt-3 rounded-2xl border border-[var(--source-border)] bg-[var(--source-bg)] px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                    Caller speaking in Tamil
+                  </p>
+                  <p className="mt-2 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
+                    {line.sourceText}
+                  </p>
+                </div>
+              ) : null}
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                  Dispatcher view in Hindi
+                </p>
+                <p className="mt-2 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
+                  {line.translatedText}
+                </p>
+              </div>
             </article>
           ))}
 
-          {partialText ? (
+          {partialLine ? (
             <article className="rounded-3xl border border-[var(--translated-border)] bg-[var(--translated-bg)] px-4 py-4">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-faint)]">
-                  Live translation
+                  Live bilingual transcript
                 </span>
                 <span className="inline-flex items-center gap-2 text-xs text-[var(--accent-strong)]">
                   <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-current" />
                   Streaming
                 </span>
               </div>
-              <p className="mt-3 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
-                {partialText}
-              </p>
+              {partialLine.sourceText ? (
+                <div className="mt-3 rounded-2xl border border-[var(--source-border)] bg-[var(--source-bg)] px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                    Caller speaking in Tamil
+                  </p>
+                  <p className="mt-2 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
+                    {partialLine.sourceText}
+                  </p>
+                </div>
+              ) : null}
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                  Dispatcher view in Hindi
+                </p>
+                <p className="mt-2 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
+                  {partialLine.translatedText}
+                </p>
+              </div>
             </article>
           ) : null}
 

@@ -26,7 +26,7 @@ export default function App() {
     isRunning,
     lines,
     mapContext,
-    partialText,
+    partialLine,
     start,
     pause,
     reset
@@ -95,7 +95,7 @@ export default function App() {
             rightSlot={
               <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
                 <ListeningIndicator
-                  label={isRunning ? "Receiving translated speech" : "Awaiting caller speech"}
+                  label={isRunning ? "Showing Tamil plus live Hindi translation" : "Awaiting caller speech"}
                   pulse={isRunning}
                 />
                 <DemoAudioControls
@@ -110,10 +110,10 @@ export default function App() {
         }
         transcript={
           <TranscriptPanel
-            title="Live translated transcript"
-            subtitle="Tamil speech will appear here directly in Hindi for the dispatcher."
+            title="Live bilingual caller transcript"
+            subtitle="Dispatchers see the caller's Tamil and the live Hindi translation together."
             lines={lines}
-            partialText={partialText}
+            partialLine={partialLine}
             isComplete={isComplete}
           />
         }

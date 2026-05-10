@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 export type TranscriptLine = {
   id: string;
   time: string;
-  text: string;
+  sourceText?: string;
+  translatedText: string;
   tone: "system" | "translated";
 };
 
@@ -41,13 +42,14 @@ const baseLines: TranscriptLine[] = [
   {
     id: "line-1",
     time: "11:43 PM",
-    text: "नमस्ते, 112 सहायता केंद्र. कृपया बताइए क्या हुआ है?",
+    translatedText: "नमस्ते, 112 सहायता केंद्र. कृपया बताइए क्या हुआ है?",
     tone: "system"
   },
   {
     id: "line-2",
     time: "11:43 PM",
-    text: "कॉलर की आवाज़ आते ही अनुवाद यहाँ लाइव दिखाई देगा।",
+    sourceText: "வணக்கம்... விபத்து... NH-48... லாரி மோதியது",
+    translatedText: "नमस्ते... दुर्घटना... NH-48... ट्रक ने टक्कर मारी",
     tone: "translated"
   }
 ];
@@ -60,7 +62,7 @@ export function useCallSession() {
   const [isRunning, setIsRunning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [lines, setLines] = useState<TranscriptLine[]>(baseLines);
-  const [partialText, setPartialText] = useState("");
+  const [partialLine, setPartialLine] = useState<TranscriptLine | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisState>({
     emergencyDetected: false,
     injuryMentioned: false,
@@ -111,13 +113,13 @@ export function useCallSession() {
       }
 
       if (event.type === "transcript.partial") {
-        setPartialText(event.payload.text);
+        setPartialLine(event.payload);
         return;
       }
 
       if (event.type === "transcript.final") {
         setLines((current) => [...current, event.payload]);
-        setPartialText("");
+        setPartialLine(null);
         return;
       }
 
@@ -153,7 +155,7 @@ export function useCallSession() {
 
   const reset = () => {
     setLines(baseLines);
-    setPartialText("");
+    setPartialLine(null);
     setIsComplete(false);
     setAnalysis({
       emergencyDetected: false,
@@ -184,7 +186,7 @@ export function useCallSession() {
     isRunning,
     lines,
     mapContext,
-    partialText,
+    partialLine,
     start: () => send("demo.start"),
     pause: () => send("demo.pause"),
     reset
