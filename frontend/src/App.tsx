@@ -32,7 +32,7 @@ export default function App() {
     reset
   } = useCallSession();
 
-  const stage: CallStage = analysis.emergencyDetected ? "response" : "transcript";
+  const stage: CallStage = mapContext.visible ? "response" : "transcript";
   const phaseLabel = alert
     ? "Critical escalation"
     : analysis.locationMentioned

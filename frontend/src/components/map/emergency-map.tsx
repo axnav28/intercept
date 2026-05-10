@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { EmergencyService } from "../../data/nh48-services";
 import { districtCenter } from "../../data/nh48-services";
-import { configureMapboxAccess, loadMapbox } from "../../lib/mapbox";
 import { ServiceCardList } from "./service-card-list";
 
 type EmergencyMapProps = {
@@ -26,149 +25,129 @@ export function EmergencyMap({
 }: EmergencyMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
-  const markerRefs = useRef<any[]>([]);
-  const [mapbox, setMapbox] = useState<any>(null);
-  const token = configureMapboxAccess();
+  const tileLayerRef = useRef<any>(null);
+  const serviceLayerRef = useRef<any>(null);
+  const focusLayerRef = useRef<any>(null);
+  const [leaflet, setLeaflet] = useState<any>(null);
   const highlightedSet = useMemo(() => new Set(highlightedIds), [highlightedIds]);
 
   useEffect(() => {
-    if (!token) {
-      return;
-    }
-
     let mounted = true;
 
-    loadMapbox().then((module) => {
+    Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")]).then(([module]) => {
       if (!mounted) {
         return;
       }
-      module.accessToken = token;
-      setMapbox(module);
+      setLeaflet(module);
     });
 
     return () => {
       mounted = false;
     };
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (!token || !mapbox || !mapContainerRef.current || mapRef.current) {
+    if (!leaflet || !mapContainerRef.current || mapRef.current) {
       return;
     }
 
-    mapRef.current = new mapbox.Map({
-      container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [districtCenter.longitude, districtCenter.latitude],
-      zoom: 9.4,
-      attributionControl: false
+    const map = leaflet.map(mapContainerRef.current, {
+      zoomControl: false,
+      scrollWheelZoom: true
     });
+    mapRef.current = map;
+    map.setView([districtCenter.latitude, districtCenter.longitude], 9.4);
+    leaflet.control.zoom({ position: "topright" }).addTo(map);
+    tileLayerRef.current = leaflet
+      .tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+        maxZoom: 19
+      })
+      .addTo(map);
 
-    mapRef.current.addControl(new mapbox.NavigationControl({ visualizePitch: true }), "top-right");
+    serviceLayerRef.current = leaflet.layerGroup().addTo(map);
+    focusLayerRef.current = leaflet.layerGroup().addTo(map);
+    window.setTimeout(() => map.invalidateSize(), 150);
 
     return () => {
-      markerRefs.current.forEach((marker) => marker.remove());
-      markerRefs.current = [];
-      mapRef.current?.remove();
+      focusLayerRef.current?.clearLayers();
+      serviceLayerRef.current?.clearLayers();
+      tileLayerRef.current?.remove();
+      map.remove();
       mapRef.current = null;
+      tileLayerRef.current = null;
+      serviceLayerRef.current = null;
+      focusLayerRef.current = null;
     };
-  }, [mapbox, token]);
+  }, [leaflet]);
 
   useEffect(() => {
-    if (!mapRef.current || !token || !mapbox) {
+    if (!mapRef.current || !leaflet || !serviceLayerRef.current) {
       return;
     }
 
-    markerRefs.current.forEach((marker) => marker.remove());
-    markerRefs.current = services.map((service) => {
-      const markerNode = document.createElement("div");
-      markerNode.className = "service-marker";
-      markerNode.style.width = highlightedSet.has(service.id) ? "18px" : "14px";
-      markerNode.style.height = highlightedSet.has(service.id) ? "18px" : "14px";
-      markerNode.style.borderRadius = "9999px";
-      markerNode.style.background = serviceColors[service.type];
-      markerNode.style.border = highlightedSet.has(service.id) ? "3px solid rgba(255,255,255,0.95)" : "2px solid rgba(255,255,255,0.85)";
-      markerNode.style.boxShadow = highlightedSet.has(service.id)
-        ? "0 0 0 10px rgba(15,143,99,0.16)"
-        : "0 4px 12px rgba(15,23,42,0.18)";
-
-      return new mapbox.Marker(markerNode)
-        .setLngLat([service.longitude, service.latitude])
-        .addTo(mapRef.current!);
+    serviceLayerRef.current.clearLayers();
+    services.forEach((service) => {
+      const highlighted = highlightedSet.has(service.id);
+      const marker = leaflet.circleMarker([service.latitude, service.longitude], {
+        radius: highlighted ? 10 : 7,
+        color: "#ffffff",
+        weight: highlighted ? 3 : 2,
+        fillColor: serviceColors[service.type],
+        fillOpacity: 0.95
+      });
+      marker.bindTooltip(
+        `<strong>${service.name}</strong><br/>${service.area} • ETA ${service.eta}<br/>${service.capability}`,
+        { direction: "top", offset: [0, -8] }
+      );
+      marker.addTo(serviceLayerRef.current);
     });
-  }, [highlightedSet, mapbox, services, token]);
+  }, [highlightedSet, leaflet, services]);
 
   useEffect(() => {
-    if (!mapRef.current || !focus || !token) {
+    if (!mapRef.current || !leaflet || !focus || !focusLayerRef.current) {
       return;
     }
 
-    mapRef.current.flyTo({
-      center: [focus.longitude, focus.latitude],
-      zoom: focus.label === districtCenter.label ? 9.4 : 12.4,
-      speed: 0.7
+    focusLayerRef.current.clearLayers();
+    leaflet
+      .circle([focus.latitude, focus.longitude], {
+        radius: focus.label === districtCenter.label ? 5200 : 1400,
+        color: "#0f8f63",
+        weight: 2,
+        fillColor: "#34d399",
+        fillOpacity: 0.15
+      })
+      .addTo(focusLayerRef.current);
+    leaflet
+      .circleMarker([focus.latitude, focus.longitude], {
+        radius: 8,
+        color: "#0f8f63",
+        weight: 3,
+        fillColor: "#ffffff",
+        fillOpacity: 1
+      })
+      .bindTooltip(focus.label, { permanent: false, direction: "top", offset: [0, -10] })
+      .addTo(focusLayerRef.current);
+
+    mapRef.current.flyTo([focus.latitude, focus.longitude], focus.label === districtCenter.label ? 9.4 : 13.4, {
+      animate: true,
+      duration: 1.8
     });
-  }, [focus, token]);
-
-  if (!token) {
-    return (
-      <FallbackMap services={services} highlightedIds={highlightedIds} focus={focus} />
-    );
-  }
+    window.setTimeout(() => mapRef.current?.invalidateSize(), 180);
+  }, [focus, leaflet]);
 
   return (
     <section className="grid h-full grid-rows-[minmax(0,1fr)_auto]">
-      <div ref={mapContainerRef} className="min-h-[320px]" />
-      <ServiceCardList services={services} highlightedIds={highlightedIds} />
-    </section>
-  );
-}
-
-function FallbackMap({
-  services,
-  highlightedIds,
-  focus
-}: {
-  services: EmergencyService[];
-  highlightedIds: string[];
-  focus: { latitude: number; longitude: number; label: string } | null;
-}) {
-  return (
-    <section className="grid h-full grid-rows-[minmax(0,1fr)_auto]">
-      <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(243,244,246,0.96),rgba(226,232,240,0.92))] dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.96))]">
-        <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(rgba(148,163,184,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.18)_1px,transparent_1px)] [background-size:32px_32px]" />
-        <div className="absolute left-5 top-5 rounded-2xl border border-white/50 bg-white/80 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-slate-950/70">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
-            District map preview
+      <div className="relative min-h-[360px]">
+        <div ref={mapContainerRef} className="h-full min-h-[360px]" />
+        <div className="pointer-events-none absolute left-4 top-4 rounded-2xl border border-white/70 bg-white/88 px-4 py-3 shadow-lg backdrop-blur">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+            Live district map
           </p>
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">{focus?.label ?? districtCenter.label}</p>
+          <p className="mt-2 text-sm text-slate-700">{focus?.label ?? districtCenter.label}</p>
         </div>
-
-        {services.map((service, index) => {
-          const top = 22 + (index % 3) * 18;
-          const left = 18 + ((index * 17) % 62);
-          const isHighlighted = highlightedIds.includes(service.id);
-
-          return (
-            <div
-              key={service.id}
-              className="absolute"
-              style={{ top: `${top}%`, left: `${left}%` }}
-            >
-              <span
-                className="block rounded-full border-2 border-white shadow-lg"
-                style={{
-                  width: isHighlighted ? 18 : 14,
-                  height: isHighlighted ? 18 : 14,
-                  background: serviceColors[service.type],
-                  boxShadow: isHighlighted ? "0 0 0 10px rgba(15, 143, 99, 0.14)" : undefined
-                }}
-              />
-            </div>
-          );
-        })}
       </div>
-
       <ServiceCardList services={services} highlightedIds={highlightedIds} />
     </section>
   );

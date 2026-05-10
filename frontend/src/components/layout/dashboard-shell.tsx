@@ -33,16 +33,20 @@ export function DashboardShell({
         <section
           className={
             split
-              ? "grid min-h-[calc(100vh-220px)] grid-rows-[minmax(0,0.85fr)_minmax(0,1.6fr)] gap-3 p-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.75fr)] lg:grid-rows-1"
+              ? "grid min-h-[calc(100vh-220px)] grid-rows-[minmax(0,1.6fr)_minmax(0,0.9fr)] gap-3 p-3 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.38fr)] lg:grid-rows-1"
               : "p-3"
           }
         >
-          <div className="min-h-[calc(100vh-250px)] overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--panel-muted)]">
+          <div
+            className={`min-h-[calc(100vh-250px)] overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--panel-muted)] ${
+              split ? "order-2 lg:order-1" : ""
+            }`}
+          >
             {transcript}
           </div>
 
           {split && map ? (
-            <div className="min-h-[52vh] overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--map-shell-bg)] lg:min-h-[calc(100vh-250px)]">
+            <div className="order-1 min-h-[58vh] overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--map-shell-bg)] lg:order-2 lg:min-h-[calc(100vh-250px)]">
               {map}
             </div>
           ) : null}
