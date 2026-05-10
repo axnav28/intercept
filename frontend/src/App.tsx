@@ -5,9 +5,10 @@ import { ThemeToggle } from "./components/shared/theme-toggle";
 import { TranscriptPanel } from "./components/transcript/transcript-panel";
 import { CallStatusBar } from "./components/call/call-status-bar";
 import { ListeningIndicator } from "./components/call/listening-indicator";
-import { EmptyMapState } from "./components/map/empty-map-state";
+import { EmergencyMap } from "./components/map/emergency-map";
 import { DemoAudioControls } from "./components/call/demo-audio-controls";
 import { useCallSession } from "./hooks/use-call-session";
+import { districtCenter, emergencyServices } from "./data/nh48-services";
 
 type ThemeMode = "light" | "dark";
 type CallStage = "transcript" | "response";
@@ -73,7 +74,15 @@ export default function App() {
             partialText={partialText}
           />
         }
-        map={stage === "response" ? <EmptyMapState /> : undefined}
+        map={
+          stage === "response" ? (
+            <EmergencyMap
+              services={emergencyServices}
+              highlightedIds={["svc-1", "svc-3"]}
+              focus={districtCenter}
+            />
+          ) : undefined
+        }
         split={stage === "response"}
       />
     </div>
