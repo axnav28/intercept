@@ -14,9 +14,15 @@ const serviceTypeLabel: Record<EmergencyService["type"], string> = {
 };
 
 export function ServiceCardList({ services, highlightedIds = [] }: ServiceCardListProps) {
+  const sortedServices = [...services].sort((a, b) => {
+    const aHighlighted = highlightedIds.includes(a.id) ? 1 : 0;
+    const bHighlighted = highlightedIds.includes(b.id) ? 1 : 0;
+    return bHighlighted - aHighlighted;
+  });
+
   return (
     <div className="grid gap-3 border-t border-[var(--panel-border)] bg-[var(--panel-bg)] p-4 sm:grid-cols-2 xl:grid-cols-3">
-      {services.map((service) => {
+      {sortedServices.map((service) => {
         const highlighted = highlightedIds.includes(service.id);
         return (
           <article

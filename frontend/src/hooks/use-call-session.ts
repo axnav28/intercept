@@ -16,6 +16,16 @@ type AnalysisState = {
   severity: "monitoring" | "elevated" | "critical";
   summary: string;
 };
+type MapContext = {
+  visible: boolean;
+  focus: { latitude: number; longitude: number; label: string };
+  highlightedIds: string[];
+  locationText?: string;
+};
+type AlertState = {
+  level: "critical" | "info";
+  title: string;
+} | null;
 
 type ServerEvent =
   | { type: "session.ready"; payload: { mode: string } }
@@ -23,6 +33,8 @@ type ServerEvent =
   | { type: "transcript.partial"; payload: TranscriptLine }
   | { type: "transcript.final"; payload: TranscriptLine }
   | { type: "analysis.updated"; payload: AnalysisState }
+  | { type: "map.context.updated"; payload: MapContext }
+  | { type: "alert.raised"; payload: { level: "critical" | "info"; title: string } }
   | { type: "session.completed"; payload: { reason: string } };
 
 const baseLines: TranscriptLine[] = [
@@ -56,6 +68,16 @@ export function useCallSession() {
     severity: "monitoring",
     summary: "AI context: monitoring live call for emergency details."
   });
+  const [mapContext, setMapContext] = useState<MapContext>({
+    visible: false,
+    focus: {
+      latitude: 28.4595,
+      longitude: 77.0266,
+      label: "Delhi NCR / NH-48"
+    },
+    highlightedIds: []
+  });
+  const [alert, setAlert] = useState<AlertState>(null);
 
   useEffect(() => {
     const socket = new WebSocket(WS_URL);
@@ -100,6 +122,16 @@ export function useCallSession() {
         return;
       }
 
+      if (event.type === "map.context.updated") {
+        setMapContext(event.payload);
+        return;
+      }
+
+      if (event.type === "alert.raised") {
+        setAlert(event.payload);
+        return;
+      }
+
       if (event.type === "session.completed") {
         setIsRunning(false);
       }
@@ -125,14 +157,26 @@ export function useCallSession() {
       severity: "monitoring",
       summary: "AI context: monitoring live call for emergency details."
     });
+    setMapContext({
+      visible: false,
+      focus: {
+        latitude: 28.4595,
+        longitude: 77.0266,
+        label: "Delhi NCR / NH-48"
+      },
+      highlightedIds: []
+    });
+    setAlert(null);
     send("demo.reset");
   };
 
   return {
     analysis,
+    alert,
     connectionStatus,
     isRunning,
     lines,
+    mapContext,
     partialText,
     start: () => send("demo.start"),
     pause: () => send("demo.pause"),

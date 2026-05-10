@@ -9,6 +9,8 @@ EventType = Literal[
     "transcript.partial",
     "transcript.final",
     "analysis.updated",
+    "map.context.updated",
+    "alert.raised",
     "session.completed",
 ]
 

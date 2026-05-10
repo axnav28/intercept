@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { DashboardShell } from "./components/layout/dashboard-shell";
+import { TopAlertStrip } from "./components/layout/top-alert-strip";
 import { ThemeToggle } from "./components/shared/theme-toggle";
 import { TranscriptPanel } from "./components/transcript/transcript-panel";
 import { CallStatusBar } from "./components/call/call-status-bar";
@@ -8,16 +9,17 @@ import { ListeningIndicator } from "./components/call/listening-indicator";
 import { EmergencyMap } from "./components/map/emergency-map";
 import { DemoAudioControls } from "./components/call/demo-audio-controls";
 import { useCallSession } from "./hooks/use-call-session";
-import { districtCenter, emergencyServices } from "./data/nh48-services";
+import { emergencyServices } from "./data/nh48-services";
 
 type ThemeMode = "light" | "dark";
 type CallStage = "transcript" | "response";
 
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
-  const [stage] = useState<CallStage>("transcript");
-  const { analysis, connectionStatus, isRunning, lines, partialText, start, pause, reset } =
+  const { alert, analysis, connectionStatus, isRunning, lines, mapContext, partialText, start, pause, reset } =
     useCallSession();
+
+  const stage: CallStage = analysis.emergencyDetected ? "response" : "transcript";
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -39,9 +41,10 @@ export default function App() {
             <ThemeToggle theme={theme} onToggle={() => setTheme(theme === "light" ? "dark" : "light")} />
           </div>
         }
+        alertStrip={alert ? <TopAlertStrip title={alert.title} level={alert.level} /> : undefined}
         statusBar={
           <CallStatusBar
-            modeLabel="Transcript only"
+            modeLabel={stage === "response" ? "Split response view" : "Transcript only"}
             connectionLabel={
               connectionStatus === "ready"
                 ? isRunning
@@ -78,8 +81,8 @@ export default function App() {
           stage === "response" ? (
             <EmergencyMap
               services={emergencyServices}
-              highlightedIds={["svc-1", "svc-3"]}
-              focus={districtCenter}
+              highlightedIds={mapContext.highlightedIds}
+              focus={mapContext.focus}
             />
           ) : undefined
         }
