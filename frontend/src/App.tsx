@@ -7,7 +7,7 @@ import { CallStatusBar } from "./components/call/call-status-bar";
 import { ListeningIndicator } from "./components/call/listening-indicator";
 import { EmptyMapState } from "./components/map/empty-map-state";
 import { DemoAudioControls } from "./components/call/demo-audio-controls";
-import { useTranscriptSimulation } from "./hooks/use-transcript-simulation";
+import { useCallSession } from "./hooks/use-call-session";
 
 type ThemeMode = "light" | "dark";
 type CallStage = "transcript" | "response";
@@ -15,7 +15,7 @@ type CallStage = "transcript" | "response";
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [stage] = useState<CallStage>("transcript");
-  const { isRunning, lines, partialText, start, pause, reset } = useTranscriptSimulation();
+  const { connectionStatus, isRunning, lines, partialText, start, pause, reset } = useCallSession();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -40,7 +40,13 @@ export default function App() {
         statusBar={
           <CallStatusBar
             modeLabel="Transcript only"
-            connectionLabel={isRunning ? "Streaming demo call" : "Demo standby"}
+            connectionLabel={
+              connectionStatus === "ready"
+                ? isRunning
+                  ? "Streaming demo call"
+                  : "Demo standby"
+                : "Connecting backend"
+            }
             rightSlot={
               <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
                 <ListeningIndicator

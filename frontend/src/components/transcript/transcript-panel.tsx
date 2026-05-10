@@ -1,4 +1,4 @@
-import type { TranscriptLine } from "../../hooks/use-transcript-simulation";
+import type { TranscriptLine } from "../../hooks/use-call-session";
 
 type TranscriptPanelProps = {
   title: string;
