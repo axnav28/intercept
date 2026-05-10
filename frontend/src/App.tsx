@@ -6,6 +6,8 @@ import { ThemeToggle } from "./components/shared/theme-toggle";
 import { TranscriptPanel } from "./components/transcript/transcript-panel";
 import { CallStatusBar } from "./components/call/call-status-bar";
 import { ListeningIndicator } from "./components/call/listening-indicator";
+import { CallTimer } from "./components/call/call-timer";
+import { ScenarioCard } from "./components/call/scenario-card";
 import { EmergencyMap } from "./components/map/emergency-map";
 import { DemoAudioControls } from "./components/call/demo-audio-controls";
 import { useCallSession } from "./hooks/use-call-session";
@@ -16,10 +18,32 @@ type CallStage = "transcript" | "response";
 
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
-  const { alert, analysis, connectionStatus, isRunning, lines, mapContext, partialText, start, pause, reset } =
-    useCallSession();
+  const {
+    alert,
+    analysis,
+    connectionStatus,
+    isComplete,
+    isRunning,
+    lines,
+    mapContext,
+    partialText,
+    start,
+    pause,
+    reset
+  } = useCallSession();
 
   const stage: CallStage = analysis.emergencyDetected ? "response" : "transcript";
+  const phaseLabel = alert
+    ? "Critical escalation"
+    : analysis.locationMentioned
+      ? "Location acquired"
+      : analysis.emergencyDetected
+        ? "Emergency confirmed"
+        : isRunning
+          ? "Listening"
+          : isComplete
+            ? "Demo complete"
+            : "Ready";
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -29,7 +53,7 @@ export default function App() {
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-primary)] transition-colors duration-300">
       <DashboardShell
         topBar={
-          <div className="flex items-center justify-between gap-4">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[var(--accent-strong)]">
                 Intercept
@@ -37,8 +61,22 @@ export default function App() {
               <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
                 Live multilingual dispatch console
               </h1>
+              <p className="mt-3 max-w-2xl text-sm text-[var(--text-secondary)]">
+                A dispatcher-first dashboard that understands the caller, extracts what matters,
+                and surfaces the right response options without manual searching.
+              </p>
             </div>
-            <ThemeToggle theme={theme} onToggle={() => setTheme(theme === "light" ? "dark" : "light")} />
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <ScenarioCard phaseLabel={phaseLabel} />
+              <CallTimer isRunning={isRunning} isComplete={isComplete} />
+              <div className="flex items-start justify-end sm:justify-stretch">
+                <ThemeToggle
+                  theme={theme}
+                  onToggle={() => setTheme(theme === "light" ? "dark" : "light")}
+                />
+              </div>
+            </div>
           </div>
         }
         alertStrip={alert ? <TopAlertStrip title={alert.title} level={alert.level} /> : undefined}
@@ -53,6 +91,7 @@ export default function App() {
                 : "Connecting backend"
             }
             contextLabel={analysis.summary}
+            phaseLabel={phaseLabel}
             rightSlot={
               <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
                 <ListeningIndicator
@@ -75,6 +114,7 @@ export default function App() {
             subtitle="Tamil speech will appear here directly in Hindi for the dispatcher."
             lines={lines}
             partialText={partialText}
+            isComplete={isComplete}
           />
         }
         map={

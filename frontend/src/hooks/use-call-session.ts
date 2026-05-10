@@ -58,6 +58,7 @@ export function useCallSession() {
   const socketRef = useRef<WebSocket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
   const [isRunning, setIsRunning] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const [lines, setLines] = useState<TranscriptLine[]>(baseLines);
   const [partialText, setPartialText] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisState>({
@@ -103,6 +104,9 @@ export function useCallSession() {
 
       if (event.type === "session.state") {
         setIsRunning(event.payload.isRunning);
+        if (event.payload.isRunning) {
+          setIsComplete(false);
+        }
         return;
       }
 
@@ -134,6 +138,7 @@ export function useCallSession() {
 
       if (event.type === "session.completed") {
         setIsRunning(false);
+        setIsComplete(true);
       }
     });
 
@@ -149,6 +154,7 @@ export function useCallSession() {
   const reset = () => {
     setLines(baseLines);
     setPartialText("");
+    setIsComplete(false);
     setAnalysis({
       emergencyDetected: false,
       injuryMentioned: false,
@@ -174,6 +180,7 @@ export function useCallSession() {
     analysis,
     alert,
     connectionStatus,
+    isComplete,
     isRunning,
     lines,
     mapContext,

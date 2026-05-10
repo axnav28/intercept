@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import type { TranscriptLine } from "../../hooks/use-call-session";
 
 type TranscriptPanelProps = {
@@ -5,9 +7,28 @@ type TranscriptPanelProps = {
   subtitle: string;
   lines: readonly TranscriptLine[];
   partialText?: string;
+  isComplete?: boolean;
 };
 
-export function TranscriptPanel({ title, subtitle, lines, partialText = "" }: TranscriptPanelProps) {
+export function TranscriptPanel({
+  title,
+  subtitle,
+  lines,
+  partialText = "",
+  isComplete = false
+}: TranscriptPanelProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!scrollRef.current) {
+      return;
+    }
+    scrollRef.current.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth"
+    });
+  }, [lines, partialText]);
+
   return (
     <section className="flex h-full flex-col">
       <div className="border-b border-[var(--panel-border)] px-5 py-5 sm:px-6">
@@ -22,7 +43,7 @@ export function TranscriptPanel({ title, subtitle, lines, partialText = "" }: Tr
         <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[var(--panel-muted)] to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--panel-muted)] to-transparent" />
 
-        <div className="flex h-full flex-col gap-3 overflow-y-auto px-5 py-5 sm:px-6">
+        <div ref={scrollRef} className="flex h-full flex-col gap-3 overflow-y-auto px-5 py-5 sm:px-6">
           {lines.map((line) => (
             <article
               key={line.id}
@@ -57,6 +78,12 @@ export function TranscriptPanel({ title, subtitle, lines, partialText = "" }: Tr
                 {partialText}
               </p>
             </article>
+          ) : null}
+
+          {isComplete ? (
+            <div className="rounded-3xl border border-[var(--panel-border)] bg-[var(--chip-bg)] px-4 py-4 text-sm text-[var(--text-secondary)]">
+              Demo call complete. The dispatcher can replay the scenario to present the flow again.
+            </div>
           ) : null}
         </div>
       </div>

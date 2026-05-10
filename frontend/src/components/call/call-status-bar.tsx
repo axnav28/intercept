@@ -4,6 +4,7 @@ type CallStatusBarProps = {
   modeLabel: string;
   connectionLabel: string;
   contextLabel: string;
+  phaseLabel: string;
   rightSlot?: ReactNode;
 };
 
@@ -11,6 +12,7 @@ export function CallStatusBar({
   modeLabel,
   connectionLabel,
   contextLabel,
+  phaseLabel,
   rightSlot
 }: CallStatusBarProps) {
   return (
@@ -19,6 +21,7 @@ export function CallStatusBar({
         <div className="flex flex-wrap items-center gap-2">
           <StatusPill label={modeLabel} tone="accent" />
           <StatusPill label={connectionLabel} tone="neutral" />
+          <StatusPill label={phaseLabel} tone="neutral" />
           <StatusPill label="Tamil -> Hindi" tone="neutral" />
           <StatusPill label="Road accident mode" tone="neutral" />
         </div>
