@@ -6,28 +6,16 @@ import { TranscriptPanel } from "./components/transcript/transcript-panel";
 import { CallStatusBar } from "./components/call/call-status-bar";
 import { ListeningIndicator } from "./components/call/listening-indicator";
 import { EmptyMapState } from "./components/map/empty-map-state";
+import { DemoAudioControls } from "./components/call/demo-audio-controls";
+import { useTranscriptSimulation } from "./hooks/use-transcript-simulation";
 
 type ThemeMode = "light" | "dark";
 type CallStage = "transcript" | "response";
 
-const initialTranscript = [
-  {
-    id: "line-1",
-    time: "11:43 PM",
-    text: "नमस्ते, 112 सहायता केंद्र. कृपया बताइए क्या हुआ है?",
-    tone: "system"
-  },
-  {
-    id: "line-2",
-    time: "11:43 PM",
-    text: "कॉलर की आवाज़ आते ही अनुवाद यहाँ लाइव दिखाई देगा।",
-    tone: "translated"
-  }
-] as const;
-
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [stage] = useState<CallStage>("transcript");
+  const { isRunning, lines, partialText, start, pause, reset } = useTranscriptSimulation();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -52,15 +40,29 @@ export default function App() {
         statusBar={
           <CallStatusBar
             modeLabel="Transcript only"
-            connectionLabel="Demo standby"
-            rightSlot={<ListeningIndicator label="Awaiting caller speech" pulse={false} />}
+            connectionLabel={isRunning ? "Streaming demo call" : "Demo standby"}
+            rightSlot={
+              <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
+                <ListeningIndicator
+                  label={isRunning ? "Receiving translated speech" : "Awaiting caller speech"}
+                  pulse={isRunning}
+                />
+                <DemoAudioControls
+                  isRunning={isRunning}
+                  onStart={start}
+                  onPause={pause}
+                  onReset={reset}
+                />
+              </div>
+            }
           />
         }
         transcript={
           <TranscriptPanel
             title="Live translated transcript"
             subtitle="Tamil speech will appear here directly in Hindi for the dispatcher."
-            lines={initialTranscript}
+            lines={lines}
+            partialText={partialText}
           />
         }
         map={stage === "response" ? <EmptyMapState /> : undefined}

@@ -1,17 +1,13 @@
-type TranscriptLine = {
-  id: string;
-  time: string;
-  text: string;
-  tone: "system" | "translated";
-};
+import type { TranscriptLine } from "../../hooks/use-transcript-simulation";
 
 type TranscriptPanelProps = {
   title: string;
   subtitle: string;
   lines: readonly TranscriptLine[];
+  partialText?: string;
 };
 
-export function TranscriptPanel({ title, subtitle, lines }: TranscriptPanelProps) {
+export function TranscriptPanel({ title, subtitle, lines, partialText = "" }: TranscriptPanelProps) {
   return (
     <section className="flex h-full flex-col">
       <div className="border-b border-[var(--panel-border)] px-5 py-5 sm:px-6">
@@ -45,6 +41,23 @@ export function TranscriptPanel({ title, subtitle, lines }: TranscriptPanelProps
               <p className="mt-3 text-base leading-7 text-[var(--text-primary)] sm:text-lg">{line.text}</p>
             </article>
           ))}
+
+          {partialText ? (
+            <article className="rounded-3xl border border-[var(--translated-border)] bg-[var(--translated-bg)] px-4 py-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-faint)]">
+                  Live translation
+                </span>
+                <span className="inline-flex items-center gap-2 text-xs text-[var(--accent-strong)]">
+                  <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-current" />
+                  Streaming
+                </span>
+              </div>
+              <p className="mt-3 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
+                {partialText}
+              </p>
+            </article>
+          ) : null}
         </div>
       </div>
     </section>
