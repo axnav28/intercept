@@ -138,9 +138,9 @@ export function EmergencyMap({
   }, [focus, leaflet]);
 
   return (
-    <section className="grid h-full grid-rows-[minmax(0,1fr)_auto]">
-      <div className="relative min-h-[360px]">
-        <div ref={mapContainerRef} className="h-full min-h-[360px]" />
+    <section className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
+      <div className="relative min-h-0">
+        <div ref={mapContainerRef} className="h-full min-h-0" />
         <div className="pointer-events-none absolute left-4 top-4 rounded-2xl border border-white/70 bg-white/88 px-4 py-3 shadow-lg backdrop-blur">
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
             Live district map

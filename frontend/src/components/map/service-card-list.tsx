@@ -21,7 +21,8 @@ export function ServiceCardList({ services, highlightedIds = [] }: ServiceCardLi
   });
 
   return (
-    <div className="grid gap-3 border-t border-[var(--panel-border)] bg-[var(--panel-bg)] p-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="max-h-[30vh] overflow-y-auto border-t border-[var(--panel-border)] bg-[var(--panel-bg)] p-4 lg:max-h-[28vh]">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {sortedServices.map((service) => {
         const highlighted = highlightedIds.includes(service.id);
         return (
@@ -47,6 +48,7 @@ export function ServiceCardList({ services, highlightedIds = [] }: ServiceCardLi
           </article>
         );
       })}
+      </div>
     </div>
   );
 }

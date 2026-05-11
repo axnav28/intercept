@@ -30,7 +30,7 @@ export function TranscriptPanel({
   }, [lines, partialLine]);
 
   return (
-    <section className="flex h-full flex-col">
+    <section className="flex h-full min-h-0 flex-col">
       <div className="border-b border-[var(--panel-border)] px-5 py-5 sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[var(--accent-strong)]">
           Transcript
@@ -39,11 +39,11 @@ export function TranscriptPanel({
         <p className="mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">{subtitle}</p>
       </div>
 
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative min-h-0 flex-1 overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[var(--panel-muted)] to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--panel-muted)] to-transparent" />
 
-        <div ref={scrollRef} className="flex h-full flex-col gap-3 overflow-y-auto px-5 py-5 sm:px-6">
+        <div ref={scrollRef} className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-5 py-5 sm:px-6">
           {lines.map((line) => (
             <article
               key={line.id}

@@ -19,7 +19,7 @@ export function DashboardShell({
 }: DashboardShellProps) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1800px] flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-      <section className="rounded-[28px] border border-[var(--panel-border)] bg-[var(--panel-bg)] shadow-[var(--panel-shadow)]">
+      <section className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-[var(--panel-border)] bg-[var(--panel-bg)] shadow-[var(--panel-shadow)]">
         <header className="border-b border-[var(--panel-border)] px-5 py-5 sm:px-7 sm:py-6">
           {topBar}
         </header>
@@ -33,12 +33,12 @@ export function DashboardShell({
         <section
           className={
             split
-              ? "grid min-h-[calc(100vh-220px)] grid-rows-[minmax(0,1.6fr)_minmax(0,0.9fr)] gap-3 p-3 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.38fr)] lg:grid-rows-1"
+              ? "grid h-[calc(100vh-255px)] min-h-0 grid-rows-[minmax(0,1.35fr)_minmax(0,0.95fr)] gap-3 overflow-hidden p-3 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.38fr)] lg:grid-rows-1"
               : "p-3"
           }
         >
           <div
-            className={`min-h-[calc(100vh-250px)] overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--panel-muted)] ${
+            className={`min-h-0 overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--panel-muted)] ${
               split ? "order-2 lg:order-1" : ""
             }`}
           >
@@ -46,7 +46,7 @@ export function DashboardShell({
           </div>
 
           {split && map ? (
-            <div className="order-1 min-h-[58vh] overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--map-shell-bg)] lg:order-2 lg:min-h-[calc(100vh-250px)]">
+            <div className="order-1 min-h-0 overflow-hidden rounded-[24px] border border-[var(--panel-border)] bg-[var(--map-shell-bg)] lg:order-2">
               {map}
             </div>
           ) : null}
