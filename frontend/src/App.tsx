@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { DashboardShell } from "./components/layout/dashboard-shell";
-import { ThemeToggle } from "./components/shared/theme-toggle";
 import { TranscriptPanel } from "./components/transcript/transcript-panel";
 import { CallTimer } from "./components/call/call-timer";
 import { ScenarioCard } from "./components/call/scenario-card";
@@ -9,8 +8,6 @@ import { EmergencyMap } from "./components/map/emergency-map";
 import { DemoAudioControls } from "./components/call/demo-audio-controls";
 import { useCallSession } from "./hooks/use-call-session";
 import { emergencyServices } from "./data/nh48-services";
-
-type ThemeMode = "light" | "dark";
 type CallStage = "transcript" | "response";
 type DispatchActionId = "als" | "trauma" | "line";
 
@@ -21,7 +18,6 @@ const dispatchActions: Array<{ id: DispatchActionId; label: string; confirmation
 ];
 
 export default function App() {
-  const [theme, setTheme] = useState<ThemeMode>("light");
   const [selectedAction, setSelectedAction] = useState<DispatchActionId | null>(null);
   const {
     analysis,
@@ -47,10 +43,6 @@ export default function App() {
         : isComplete
           ? "Demo complete"
           : "Ready";
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
 
   const handleReset = () => {
     setSelectedAction(null);
@@ -89,38 +81,32 @@ export default function App() {
                 onPause={pause}
                 onReset={handleReset}
               />
-              <div className="flex h-full min-h-[132px] flex-col gap-3">
-                <ThemeToggle
-                  theme={theme}
-                  onToggle={() => setTheme(theme === "light" ? "dark" : "light")}
-                />
-                <div
-                  className={`flex min-h-0 flex-1 flex-col justify-center rounded-[22px] border px-4 py-3 ${
-                    isCritical
-                      ? "critical-pulse border-rose-200/80 bg-rose-50 text-rose-900 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-100"
-                      : severity === "elevated"
-                        ? "border-amber-200/80 bg-amber-50 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-                        : "border-[var(--panel-border)] bg-[var(--panel-muted)]"
-                  }`}
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-current/70">
-                    Emergency status
-                  </p>
-                  <p className="mt-2 text-sm font-semibold">
-                    {isCritical
-                      ? "Breathing emergency detected"
-                      : severity === "elevated"
-                        ? "Injury and impact details incoming"
-                        : "Monitoring incoming call"}
-                  </p>
-                  <p className="mt-1 text-xs text-current/75">
-                    {isCritical
-                      ? "Dispatch trauma + ambulance now"
-                      : severity === "elevated"
-                        ? "Prepare trauma and roadside response"
-                        : "Await location confirmation"}
-                  </p>
-                </div>
+              <div
+                className={`flex h-full min-h-[132px] flex-col justify-center rounded-[22px] border px-4 py-4 ${
+                  isCritical
+                    ? "critical-pulse border-rose-200/80 bg-rose-50 text-rose-900 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-100"
+                    : severity === "elevated"
+                      ? "border-amber-200/80 bg-amber-50 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+                      : "border-[var(--panel-border)] bg-[var(--panel-muted)]"
+                }`}
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-current/70">
+                  Emergency status
+                </p>
+                <p className="mt-3 text-base font-semibold">
+                  {isCritical
+                    ? "Breathing emergency detected"
+                    : severity === "elevated"
+                      ? "Injury and impact details incoming"
+                      : "Monitoring incoming call"}
+                </p>
+                <p className="mt-2 text-sm text-current/75">
+                  {isCritical
+                    ? "Dispatch trauma + ambulance now"
+                    : severity === "elevated"
+                      ? "Prepare trauma and roadside response"
+                      : "Await location confirmation"}
+                </p>
               </div>
             </div>
           </div>
