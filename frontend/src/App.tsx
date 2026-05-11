@@ -9,19 +9,25 @@ import { DemoAudioControls } from "./components/call/demo-audio-controls";
 import { useCallSession } from "./hooks/use-call-session";
 import { emergencyServices } from "./data/nh48-services";
 type CallStage = "transcript" | "response";
-type DispatchActionId = "als" | "trauma" | "line";
+type DispatchActionId = "als" | "trauma";
 
 const dispatchActions: Array<{ id: DispatchActionId; label: string; confirmation: string }> = [
-  { id: "als", label: "Send ALS ambulance", confirmation: "Emergency help sent. ALS ambulance is being dispatched." },
-  { id: "trauma", label: "Notify trauma center", confirmation: "Emergency help sent. Trauma center has been notified." },
-  { id: "line", label: "Keep caller on line", confirmation: "Emergency help sent. Dispatcher will keep the caller on the line." }
+  {
+    id: "als",
+    label: "Send ALS ambulance",
+    confirmation: "आपकी मदद रास्ते में है। एएलएस एम्बुलेंस आपकी लोकेशन पर भेज दी गई है। कृपया शांत रहें, सहायता पहुँच रही है।"
+  },
+  {
+    id: "trauma",
+    label: "Notify trauma center",
+    confirmation: "आपकी मदद रास्ते में है। ट्रॉमा सेंटर को सूचित कर दिया गया है और रेस्पॉन्डर आपकी ओर भेजे जा रहे हैं। कृपया शांत रहें, सहायता पहुँच रही है।"
+  }
 ];
 
 export default function App() {
   const [selectedAction, setSelectedAction] = useState<DispatchActionId | null>(null);
   const {
     analysis,
-    isComplete,
     isRunning,
     lines,
     mapContext,
@@ -34,13 +40,17 @@ export default function App() {
   const stage: CallStage = mapContext.visible ? "response" : "transcript";
   const severity = analysis.severity;
   const isCritical = severity === "critical";
+  const dispatchConfirmed = selectedAction !== null;
+  const awaitingDispatch = isCritical && !dispatchConfirmed;
   const phaseLabel = analysis.locationMentioned
     ? "Location acquired"
     : analysis.emergencyDetected
-      ? "Emergency confirmed"
+      ? awaitingDispatch
+        ? "Awaiting dispatch"
+        : "Emergency confirmed"
       : isRunning
         ? "Listening"
-        : isComplete
+        : dispatchConfirmed
           ? "Demo complete"
           : "Ready";
 
@@ -74,7 +84,11 @@ export default function App() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2 xl:col-span-4 xl:grid-cols-4">
               <ScenarioCard phaseLabel={phaseLabel} />
-              <CallTimer isRunning={isRunning} isComplete={isComplete} isFrozen={selectedAction !== null} />
+              <CallTimer
+                isRunning={isRunning || awaitingDispatch}
+                isComplete={dispatchConfirmed}
+                isFrozen={dispatchConfirmed}
+              />
               <DemoAudioControls
                 isRunning={isRunning}
                 onStart={start}
@@ -117,7 +131,7 @@ export default function App() {
             subtitle="Dispatchers see the caller's Tamil and the live Hindi translation together."
             lines={lines}
             partialLine={partialLine}
-            isComplete={isComplete}
+            isComplete={dispatchConfirmed}
             severity={severity}
             actionSlot={
               isCritical ? (
@@ -141,23 +155,39 @@ export default function App() {
                         key={action.id}
                         type="button"
                         onClick={() => setSelectedAction(action.id)}
-                        disabled={selectedAction !== null}
+                        disabled={dispatchConfirmed}
                         className="w-full rounded-2xl border border-rose-200 bg-white/90 px-4 py-3 text-left text-sm font-semibold text-rose-900 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-800 dark:bg-slate-950/40 dark:text-rose-100 dark:hover:bg-rose-950/60"
                       >
                         {index + 1}. {action.label}
                       </button>
                     ))}
                   </div>
-                  {emergencyMessage ? (
-                    <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200">
-                      {emergencyMessage}
-                    </div>
-                  ) : (
+                  {emergencyMessage ? null : (
                     <p className="mt-4 text-sm text-rose-800/80 dark:text-rose-200/80">
-                      Select an action to confirm dispatch and freeze the call timer.
+                      Select an action to confirm dispatch. The timer and completion state will update only after confirmation.
                     </p>
                   )}
                 </div>
+              ) : null
+            }
+            postActionSlot={
+              emergencyMessage ? (
+                <article className="rounded-3xl border border-[var(--system-border)] bg-[var(--system-bg)] px-4 py-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-faint)]">
+                      Dispatch prompt
+                    </span>
+                    <time className="text-xs text-[var(--text-faint)]">11:45 PM</time>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-faint)]">
+                      Dispatcher message in Hindi
+                    </p>
+                    <p className="mt-2 text-base leading-7 text-[var(--text-primary)] sm:text-lg">
+                      {emergencyMessage}
+                    </p>
+                  </div>
+                </article>
               ) : null
             }
           />

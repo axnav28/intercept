@@ -17,9 +17,9 @@ export function DemoAudioControls({
         Controls
       </p>
       <div className="mt-3 flex flex-1 flex-col gap-2">
-      <ActionButton label="Start demo" onClick={onStart} disabled={isRunning} />
-      <ActionButton label="Pause" onClick={onPause} disabled={!isRunning} />
-      <ActionButton label="Reset" onClick={onReset} />
+      <ActionButton label="START DEMO" onClick={onStart} disabled={isRunning} />
+      <ActionButton label="PAUSE DEMO" onClick={onPause} disabled={!isRunning} />
+      <ActionButton label="RESET DEMO" onClick={onReset} />
       </div>
     </div>
   );

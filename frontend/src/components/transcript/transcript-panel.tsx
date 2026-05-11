@@ -11,6 +11,7 @@ type TranscriptPanelProps = {
   isComplete?: boolean;
   severity?: "monitoring" | "elevated" | "critical";
   actionSlot?: ReactNode;
+  postActionSlot?: ReactNode;
 };
 
 export function TranscriptPanel({
@@ -20,7 +21,8 @@ export function TranscriptPanel({
   partialLine = null,
   isComplete = false,
   severity = "monitoring",
-  actionSlot
+  actionSlot,
+  postActionSlot
 }: TranscriptPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const latestTranslatedId = [...lines].reverse().find((line) => line.tone === "translated")?.id;
@@ -129,6 +131,8 @@ export function TranscriptPanel({
           ) : null}
 
           {actionSlot}
+
+          {postActionSlot}
 
           {isComplete ? (
             <div className="rounded-3xl border border-[var(--panel-border)] bg-[var(--chip-bg)] px-4 py-4 text-sm text-[var(--text-secondary)]">
