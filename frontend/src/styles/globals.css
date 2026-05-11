@@ -27,6 +27,10 @@
   --source-border: rgba(14, 116, 144, 0.16);
   --translated-bg: #f4fbf7;
   --translated-border: rgba(16, 185, 129, 0.22);
+  --critical-strong: #dc2626;
+  --critical-soft: rgba(220, 38, 38, 0.12);
+  --elevated-strong: #d97706;
+  --elevated-soft: rgba(217, 119, 6, 0.12);
 }
 
 .dark {
@@ -51,6 +55,34 @@
   --source-border: rgba(125, 211, 252, 0.18);
   --translated-bg: rgba(3, 105, 70, 0.18);
   --translated-border: rgba(110, 231, 183, 0.18);
+  --critical-strong: #f87171;
+  --critical-soft: rgba(248, 113, 113, 0.16);
+  --elevated-strong: #f59e0b;
+  --elevated-soft: rgba(245, 158, 11, 0.16);
+}
+
+[data-severity="elevated"] {
+  --accent-strong: var(--elevated-strong);
+  --accent-soft: var(--elevated-soft);
+  --translated-bg: rgba(245, 158, 11, 0.08);
+  --translated-border: rgba(217, 119, 6, 0.18);
+}
+
+[data-severity="critical"] {
+  --accent-strong: var(--critical-strong);
+  --accent-soft: var(--critical-soft);
+  --translated-bg: rgba(220, 38, 38, 0.08);
+  --translated-border: rgba(220, 38, 38, 0.2);
+}
+
+.dark [data-severity="elevated"] {
+  --translated-bg: rgba(245, 158, 11, 0.14);
+  --translated-border: rgba(245, 158, 11, 0.22);
+}
+
+.dark [data-severity="critical"] {
+  --translated-bg: rgba(220, 38, 38, 0.16);
+  --translated-border: rgba(248, 113, 113, 0.22);
 }
 
 body {
@@ -65,4 +97,47 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+@keyframes criticalPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.2);
+  }
+
+  50% {
+    transform: scale(1.015);
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0.06);
+  }
+}
+
+@keyframes mapPulse {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.65;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.18;
+  }
+}
+
+.critical-pulse {
+  animation: criticalPulse 2.6s ease-in-out infinite;
+}
+
+.critical-map-icon {
+  background: transparent;
+  border: 0;
+}
+
+.critical-pulse-map {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: rgba(220, 38, 38, 0.18);
+  border: 2px solid rgba(220, 38, 38, 0.55);
+  animation: mapPulse 2.2s ease-in-out infinite;
 }

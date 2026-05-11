@@ -8,14 +8,14 @@ export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
     <button
       type="button"
       onClick={onToggle}
-      className="flex h-full min-h-[132px] w-full flex-col justify-between rounded-[22px] border border-[var(--panel-border)] bg-[var(--panel-muted)] px-4 py-3 text-left transition hover:border-[var(--accent-soft)] hover:text-[var(--accent-strong)]"
+      className="flex min-h-[54px] w-full items-center justify-between rounded-[22px] border border-[var(--panel-border)] bg-[var(--panel-muted)] px-4 py-3 text-left transition hover:border-[var(--accent-soft)] hover:text-[var(--accent-strong)]"
       aria-label="Toggle color theme"
     >
-      <div>
+      <div className="pr-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-faint)]">
           Dark mode
         </p>
-        <p className="mt-2 text-base font-semibold text-[var(--text-primary)]">
+        <p className="mt-1 text-sm font-semibold text-[var(--text-primary)]">
           {theme === "dark" ? "On" : "Off"}
         </p>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 
 import type { TranscriptLine } from "../../hooks/use-call-session";
 
@@ -8,6 +9,8 @@ type TranscriptPanelProps = {
   lines: readonly TranscriptLine[];
   partialLine?: TranscriptLine | null;
   isComplete?: boolean;
+  severity?: "monitoring" | "elevated" | "critical";
+  actionSlot?: ReactNode;
 };
 
 export function TranscriptPanel({
@@ -15,9 +18,12 @@ export function TranscriptPanel({
   subtitle,
   lines,
   partialLine = null,
-  isComplete = false
+  isComplete = false,
+  severity = "monitoring",
+  actionSlot
 }: TranscriptPanelProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const latestTranslatedId = [...lines].reverse().find((line) => line.tone === "translated")?.id;
 
   useEffect(() => {
     if (!scrollRef.current) {
@@ -47,10 +53,14 @@ export function TranscriptPanel({
           {lines.map((line) => (
             <article
               key={line.id}
-              className={`rounded-3xl border px-4 py-4 ${
+              className={`rounded-3xl border px-4 py-4 transition-shadow ${
                 line.tone === "system"
                   ? "border-[var(--system-border)] bg-[var(--system-bg)]"
                   : "border-[var(--translated-border)] bg-[var(--translated-bg)]"
+              } ${
+                severity === "critical" && line.id === latestTranslatedId
+                  ? "border-l-4 border-l-[var(--critical-strong)] shadow-[0_0_0_1px_rgba(220,38,38,0.08),0_18px_48px_rgba(220,38,38,0.12)] dark:shadow-[0_0_0_1px_rgba(248,113,113,0.12),0_20px_50px_rgba(127,29,29,0.32)]"
+                  : ""
               }`}
             >
               <div className="flex items-center justify-between gap-4">
@@ -81,7 +91,13 @@ export function TranscriptPanel({
           ))}
 
           {partialLine ? (
-            <article className="rounded-3xl border border-[var(--translated-border)] bg-[var(--translated-bg)] px-4 py-4">
+            <article
+              className={`rounded-3xl border border-[var(--translated-border)] bg-[var(--translated-bg)] px-4 py-4 ${
+                severity === "critical"
+                  ? "critical-pulse border-l-4 border-l-[var(--critical-strong)] shadow-[0_18px_48px_rgba(220,38,38,0.12)] dark:shadow-[0_20px_50px_rgba(127,29,29,0.32)]"
+                  : ""
+              }`}
+            >
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-faint)]">
                   Live bilingual transcript
@@ -111,6 +127,8 @@ export function TranscriptPanel({
               </div>
             </article>
           ) : null}
+
+          {actionSlot}
 
           {isComplete ? (
             <div className="rounded-3xl border border-[var(--panel-border)] bg-[var(--chip-bg)] px-4 py-4 text-sm text-[var(--text-secondary)]">

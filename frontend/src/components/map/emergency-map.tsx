@@ -8,6 +8,7 @@ type EmergencyMapProps = {
   services: EmergencyService[];
   highlightedIds?: string[];
   focus?: { latitude: number; longitude: number; label: string } | null;
+  severity?: "monitoring" | "elevated" | "critical";
 };
 
 const serviceColors: Record<EmergencyService["type"], string> = {
@@ -21,7 +22,8 @@ const serviceColors: Record<EmergencyService["type"], string> = {
 export function EmergencyMap({
   services,
   highlightedIds = [],
-  focus = districtCenter
+  focus = districtCenter,
+  severity = "monitoring"
 }: EmergencyMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
@@ -89,11 +91,12 @@ export function EmergencyMap({
     serviceLayerRef.current.clearLayers();
     services.forEach((service) => {
       const highlighted = highlightedSet.has(service.id);
+      const criticalHighlighted = severity === "critical" && highlighted;
       const marker = leaflet.circleMarker([service.latitude, service.longitude], {
         radius: highlighted ? 10 : 7,
-        color: "#ffffff",
+        color: criticalHighlighted ? "#fee2e2" : "#ffffff",
         weight: highlighted ? 3 : 2,
-        fillColor: serviceColors[service.type],
+        fillColor: criticalHighlighted ? "#dc2626" : serviceColors[service.type],
         fillOpacity: 0.95
       });
       marker.bindTooltip(
@@ -102,7 +105,7 @@ export function EmergencyMap({
       );
       marker.addTo(serviceLayerRef.current);
     });
-  }, [highlightedSet, leaflet, services]);
+  }, [highlightedSet, leaflet, services, severity]);
 
   useEffect(() => {
     if (!mapRef.current || !leaflet || !focus || !focusLayerRef.current) {
@@ -110,38 +113,62 @@ export function EmergencyMap({
     }
 
     focusLayerRef.current.clearLayers();
+    const isCritical = severity === "critical";
+    const ringColor = isCritical ? "#dc2626" : severity === "elevated" ? "#d97706" : "#0f8f63";
+    const fillColor = isCritical ? "#f87171" : severity === "elevated" ? "#f59e0b" : "#34d399";
     leaflet
       .circle([focus.latitude, focus.longitude], {
         radius: focus.label === districtCenter.label ? 5200 : 1400,
-        color: "#0f8f63",
+        color: ringColor,
         weight: 2,
-        fillColor: "#34d399",
+        fillColor,
         fillOpacity: 0.15
       })
       .addTo(focusLayerRef.current);
-    leaflet
-      .circleMarker([focus.latitude, focus.longitude], {
-        radius: 8,
-        color: "#0f8f63",
-        weight: 3,
-        fillColor: "#ffffff",
-        fillOpacity: 1
-      })
-      .bindTooltip(focus.label, { permanent: false, direction: "top", offset: [0, -10] })
-      .addTo(focusLayerRef.current);
+    const focusMarker = leaflet.circleMarker([focus.latitude, focus.longitude], {
+      radius: 8,
+      color: ringColor,
+      weight: 3,
+      fillColor: "#ffffff",
+      fillOpacity: 1
+    });
+    focusMarker.bindTooltip(focus.label, { permanent: false, direction: "top", offset: [0, -10] }).addTo(
+      focusLayerRef.current
+    );
+
+    if (isCritical) {
+      leaflet
+        .marker([focus.latitude, focus.longitude], {
+          icon: leaflet.divIcon({
+            className: "critical-map-icon",
+            html: '<span class="critical-pulse-map"></span>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          })
+        })
+        .addTo(focusLayerRef.current);
+    }
 
     mapRef.current.flyTo([focus.latitude, focus.longitude], focus.label === districtCenter.label ? 9.4 : 13.4, {
       animate: true,
       duration: 1.8
     });
     window.setTimeout(() => mapRef.current?.invalidateSize(), 180);
-  }, [focus, leaflet]);
+  }, [focus, leaflet, severity]);
 
   return (
     <section className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
       <div className="relative min-h-0">
         <div ref={mapContainerRef} className="h-full min-h-0" />
-        <div className="pointer-events-none absolute left-4 top-4 rounded-2xl border border-white/70 bg-white/88 px-4 py-3 shadow-lg backdrop-blur">
+        <div
+          className={`pointer-events-none absolute left-4 top-4 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur ${
+            severity === "critical"
+              ? "critical-pulse border-rose-200/80 bg-rose-50/92"
+              : severity === "elevated"
+                ? "border-amber-200/80 bg-amber-50/90"
+                : "border-white/70 bg-white/88"
+          }`}
+        >
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
             Live district map
           </p>
