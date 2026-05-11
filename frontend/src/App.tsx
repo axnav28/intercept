@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { DashboardShell } from "./components/layout/dashboard-shell";
-import { TopAlertStrip } from "./components/layout/top-alert-strip";
 import { ThemeToggle } from "./components/shared/theme-toggle";
 import { TranscriptPanel } from "./components/transcript/transcript-panel";
 import { CallStatusBar } from "./components/call/call-status-bar";
@@ -19,7 +18,6 @@ type CallStage = "transcript" | "response";
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const {
-    alert,
     analysis,
     connectionStatus,
     isComplete,
@@ -33,17 +31,15 @@ export default function App() {
   } = useCallSession();
 
   const stage: CallStage = mapContext.visible ? "response" : "transcript";
-  const phaseLabel = alert
-    ? "Critical escalation"
-    : analysis.locationMentioned
-      ? "Location acquired"
-      : analysis.emergencyDetected
-        ? "Emergency confirmed"
-        : isRunning
-          ? "Listening"
-          : isComplete
-            ? "Demo complete"
-            : "Ready";
+  const phaseLabel = analysis.locationMentioned
+    ? "Location acquired"
+    : analysis.emergencyDetected
+      ? "Emergency confirmed"
+      : isRunning
+        ? "Listening"
+        : isComplete
+          ? "Demo complete"
+          : "Ready";
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -53,33 +49,34 @@ export default function App() {
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-primary)] transition-colors duration-300">
       <DashboardShell
         topBar={
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-            <div>
+          <div className="grid gap-4 xl:grid-cols-[minmax(260px,1.2fr)_repeat(4,minmax(180px,0.7fr))] xl:items-stretch">
+            <div className="rounded-[22px] border border-[var(--panel-border)] bg-[var(--panel-muted)] px-5 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[var(--accent-strong)]">
-                Intercept
+                Dispatch dashboard
               </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
-                Live multilingual dispatch console
+              <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+                Intercept
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-[var(--text-secondary)]">
-                A dispatcher-first dashboard that understands the caller, extracts what matters,
-                and surfaces the right response options without manual searching.
+              <p className="mt-3 max-w-xl text-sm text-[var(--text-secondary)]">
+                Live multilingual emergency coordination for rapid district response.
               </p>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:col-span-4 xl:grid-cols-4">
               <ScenarioCard phaseLabel={phaseLabel} />
               <CallTimer isRunning={isRunning} isComplete={isComplete} />
-              <div className="flex items-start justify-end sm:justify-stretch">
-                <ThemeToggle
-                  theme={theme}
-                  onToggle={() => setTheme(theme === "light" ? "dark" : "light")}
-                />
-              </div>
+              <DemoAudioControls
+                isRunning={isRunning}
+                onStart={start}
+                onPause={pause}
+                onReset={reset}
+              />
+              <ThemeToggle
+                theme={theme}
+                onToggle={() => setTheme(theme === "light" ? "dark" : "light")}
+              />
             </div>
           </div>
         }
-        alertStrip={alert ? <TopAlertStrip title={alert.title} level={alert.level} /> : undefined}
         statusBar={
           <CallStatusBar
             modeLabel={stage === "response" ? "Split response view" : "Transcript only"}
@@ -97,12 +94,6 @@ export default function App() {
                 <ListeningIndicator
                   label={isRunning ? "Showing Tamil plus live Hindi translation" : "Awaiting caller speech"}
                   pulse={isRunning}
-                />
-                <DemoAudioControls
-                  isRunning={isRunning}
-                  onStart={start}
-                  onPause={pause}
-                  onReset={reset}
                 />
               </div>
             }
