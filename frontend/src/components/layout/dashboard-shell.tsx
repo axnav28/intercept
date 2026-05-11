@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 type DashboardShellProps = {
   topBar: ReactNode;
   alertStrip?: ReactNode;
-  statusBar: ReactNode;
   transcript: ReactNode;
   map?: ReactNode;
   split: boolean;
@@ -12,7 +11,6 @@ type DashboardShellProps = {
 export function DashboardShell({
   topBar,
   alertStrip,
-  statusBar,
   transcript,
   map,
   split
@@ -25,10 +23,6 @@ export function DashboardShell({
         </header>
 
         {alertStrip}
-
-        <div className="border-b border-[var(--panel-border)] px-5 py-4 sm:px-7">
-          {statusBar}
-        </div>
 
         <section
           className={

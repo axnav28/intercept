@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { DashboardShell } from "./components/layout/dashboard-shell";
 import { ThemeToggle } from "./components/shared/theme-toggle";
 import { TranscriptPanel } from "./components/transcript/transcript-panel";
-import { CallStatusBar } from "./components/call/call-status-bar";
-import { ListeningIndicator } from "./components/call/listening-indicator";
 import { CallTimer } from "./components/call/call-timer";
 import { ScenarioCard } from "./components/call/scenario-card";
 import { EmergencyMap } from "./components/map/emergency-map";
@@ -19,7 +17,6 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const {
     analysis,
-    connectionStatus,
     isComplete,
     isRunning,
     lines,
@@ -76,28 +73,6 @@ export default function App() {
               />
             </div>
           </div>
-        }
-        statusBar={
-          <CallStatusBar
-            modeLabel={stage === "response" ? "Split response view" : "Transcript only"}
-            connectionLabel={
-              connectionStatus === "ready"
-                ? isRunning
-                  ? "Streaming demo call"
-                  : "Demo standby"
-                : "Connecting backend"
-            }
-            contextLabel={analysis.summary}
-            phaseLabel={phaseLabel}
-            rightSlot={
-              <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
-                <ListeningIndicator
-                  label={isRunning ? "Showing Tamil plus live Hindi translation" : "Awaiting caller speech"}
-                  pulse={isRunning}
-                />
-              </div>
-            }
-          />
         }
         transcript={
           <TranscriptPanel
